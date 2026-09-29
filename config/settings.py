@@ -36,3 +36,9 @@ RETRY_STATUS_CODES = {
   503,  #Service Unavailable
   504   #Gateway timeout
 }
+
+BROWSERSTACK_OS = "windows"
+BROWSERSTACK_OS_VERSION = "11"
+BROWSERSTACK_BROWSER_VERSION = "latest"
+BROWSERSTACK_PROJECT_NAME = "Enterprise Test Automation Framework"
+BROWSERSTACK_BUILD_NAME = "Local Build"

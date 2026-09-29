@@ -34,8 +34,8 @@ def pytest_addoption(parser):
         "--execution-mode",
         action="store",
         default="local",
-        choices=["local", "remote"],
-        help="Execution mode: local or remote",
+        choices=["local", "grid", "browserstack"],
+        help="Execution mode: local, grid, or browserstack",
     )
 
     parser.addoption(

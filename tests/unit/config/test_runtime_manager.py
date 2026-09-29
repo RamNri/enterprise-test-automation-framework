@@ -53,11 +53,11 @@ class TestRuntimeManager:
     RuntimeManager.configure(
         browser="chrome",
         headless=False,
-        execution_mode="remote",
+        execution_mode="grid",
         grid_url="http://selenium-hub:4444",
     )
 
-    assert settings.EXECUTION_MODE == "remote"
+    assert settings.EXECUTION_MODE =="grid"
     assert settings.GRID_URL == "http://selenium-hub:4444"
 
   def test_configure_rejects_invalid_execution_mode(self):

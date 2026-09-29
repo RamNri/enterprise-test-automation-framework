@@ -16,6 +16,7 @@ from core.driver.browser import Browser
 from core.driver.driver_options import DriverOptions
 from core.execution.execution_context import ExecutionContext
 
+from config.browserstack_config import BrowserStackConfig
 
 logger = logging.getLogger(__name__)
 
@@ -76,9 +77,17 @@ class DriverFactory:
         # Create browser options
         options = DriverOptions.create(browser, settings.HEADLESS)
 
-        if settings.EXECUTION_MODE == "remote":
+        if settings.EXECUTION_MODE == "grid":
             driver = webdriver.Remote(command_executor=settings.GRID_URL, options=options)
 
+        elif settings.EXECUTION_MODE == "browserstack":
+            capabilities = BrowserStackConfig.capabilities()
+
+            for key, value in capabilities.items():
+                options.set_capability(key, value)
+      
+            driver = webdriver.Remote(command_executor=BrowserStackConfig.hub_url(), options=options)
+        
         else:
 
             # Find correct browser creator

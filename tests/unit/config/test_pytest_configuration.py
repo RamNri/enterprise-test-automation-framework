@@ -76,8 +76,8 @@ class TestPytestConfiguration:
           "--execution-mode",
             action="store",
             default="local",
-            choices=["local", "remote"],
-            help="Execution mode: local or remote",
+            choices=["local", "grid", "browserstack"],
+            help="Execution mode: local, grid, or browserstack",
         )
 
     @patch("framework_conftest.ExecutionContext.start_test")
