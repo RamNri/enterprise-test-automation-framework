@@ -36,4 +36,4 @@ services:
       chrome:
         condition: service_started
 
-    command: pytest --execution-mode remote
+    command: pytest --execution-mode grid
