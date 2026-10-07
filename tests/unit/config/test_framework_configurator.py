@@ -99,7 +99,7 @@ class TestFrameworkConfigurator:
     assert settings.BROWSER == original_browser
     assert settings.HEADLESS == original_headless
 
-  def test_configure_updates_remote_execution_settings(
+  def test_configure_updates_grid_execution_settings(
     self,
     preserve_environment_settings,
     preserve_runtime_settings
@@ -108,13 +108,13 @@ class TestFrameworkConfigurator:
         environment="qa",
         browser="chrome",
         headless=True,
-        execution_mode="remote",
+        execution_mode="grid",
     )
 
     assert settings.ENVIRONMENT == "qa"
     assert settings.BROWSER == "chrome"
     assert settings.HEADLESS is True
-    assert settings.EXECUTION_MODE == "remote"
+    assert settings.EXECUTION_MODE == "grid"
     assert settings.GRID_URL == "http://selenium-hub:4444"
 
   def test_configure_rejects_invalid_execution_mode(
