@@ -1,3 +1,16 @@
+
+# Architect: Nripesh Kumar Srivastawa
+# Role Profile: QA Automation Architect & AI Quality Specialist
+# Credentials: AWS Certified Solutions Architect – Associate (SAA-C03)
+# Core Expertise: Python, Advanced Pytest Concurrency, LLM/RAG Quality Engineering
+# Enterprise Track Record: 13+ Years Experience (Ex-VMware MTS Q3, Ex-Amazon QAT)
+# 
+# 📬 FOR RECRUITMENT & COLLABORATION INQUIRIES:
+# 📧 Direct Email: nripeshsrivastawa@gmail.com
+# 🌐 GitHub: https://github.com/RamNri
+# 
+# *Status: Open for Senior QA Automation & AI/ML Testing opportunities.*
+
 import pytest
 import logging
 

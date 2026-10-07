@@ -1,3 +1,17 @@
+
+# 🚀 OPEN FOR WORK: ENTERPRISE TEST AUTOMATION & AI QUALITY SPECIALIST
+> **Are you an Engineering Manager, Tech Lead, or Recruiter looking for an advanced QA specialist?**  
+> I am the sole architect of this framework. I combine **13+ years of enterprise QA leadership** (with proven tenures at **VMware** and **Amazon**) with deep **AWS Cloud Architecture** and **first-principles AI/LLM engineering metrics** (including testing RAG pipelines and hallucination validation).
+> 
+> I am actively interviewing for full-time roles: **Senior QA Automation Engineer | AI/ML Quality Engineer**.
+> 
+> 📬 **Let's connect and build together:**  
+> 📧 **Direct Email:** nripeshsrivastawa@gmail.com  
+> 🌐 **GitHub Profile:** [://github.com](https://github.com/RamNri)
+
+---
+
+
 # Enterprise Selenium + API Automation Framework
 
 ## Overview
