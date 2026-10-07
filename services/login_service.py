@@ -1,3 +1,4 @@
+import allure
 from pages.login_page import LoginPage
 from pages.inventory_page import InventoryPage
 from config import settings
@@ -9,7 +10,8 @@ class LoginService:
     self.login_page = LoginPage(driver)
 
   def login(self, username, password):
-     self.login_page.open().login(username, password,)
+     with allure.step("Login"):
+      self.login_page.open().login(username, password,)
      return InventoryPage(self.login_page.driver)
     
   def login_as_standard_user(self):

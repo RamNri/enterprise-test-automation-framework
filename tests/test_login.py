@@ -1,3 +1,4 @@
+import allure
 import pytest
 from test_data.login_data import (
   VALID_LOGIN_USERS,
@@ -19,6 +20,7 @@ from services.login_service import LoginService
 )
 
 def test_successful_login(driver, username, password):
+  allure.dynamic.parameter("password", "********")
   inventory = ( 
     LoginService(driver).login(username, password)
   )

@@ -1,3 +1,4 @@
+import allure
 import logging
 from selenium.webdriver.common.by import By
 from pages.inventory_page import InventoryPage
@@ -17,6 +18,7 @@ class LoginPage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
 
+    @allure.step("Open login page")
     def open(self):
         logger.info("Opening %s", BASE_URL)
         self.driver.get(BASE_URL)
