@@ -55,3 +55,13 @@ jobs:
       - name: Run BrowserStack test
         run: |
           python -m pytest "tests/test_login.py::test_successful_login[Standard User]" --execution-mode browserstack
+  docker-grid:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run tests with Docker and Selenium Grid
+        run: |
+          docker compose up --build --abort-on-container-exit --exit-code-from test-runner
