@@ -65,3 +65,52 @@ jobs:
       - name: Run tests with Docker and Selenium Grid
         run: |
           docker compose up --build --abort-on-container-exit --exit-code-from test-runner
+  aws-ecr:
+    name: Build and Push Docker Image to AWS ECR
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - test
+      - browserstack
+      - docker-grid
+
+    # Push images only after successful CI on main.
+    # Pull requests must not push images to AWS.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::788208946296:role/GitHubActions-ECR-Push
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: scalable-enterprise-test-automation-framework
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            .
+
+      - name: Push Docker image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: scalable-enterprise-test-automation-framework
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
