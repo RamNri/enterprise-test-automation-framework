@@ -87,6 +87,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Diagnose GitHub OIDC identity
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REPOSITORY_ID: ${{ github.repository_id }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+          REPOSITORY_OWNER_ID: ${{ github.repository_owner_id }}
+          GIT_REF: ${{ github.ref }}
+        run: |
+          echo "Repository: $REPOSITORY"
+          echo "Repository ID: $REPOSITORY_ID"
+          echo "Repository owner: $REPOSITORY_OWNER"
+          echo "Repository owner ID: $REPOSITORY_OWNER_ID"
+          echo "Git ref: $GIT_REF"
+          echo "Expected immutable subject:"
+          echo "repo:${REPOSITORY_OWNER}@${REPOSITORY_OWNER_ID}/${REPOSITORY#*/}@${REPOSITORY_ID}:ref:${GIT_REF}"
+
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
