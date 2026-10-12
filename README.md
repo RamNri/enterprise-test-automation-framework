@@ -10,81 +10,68 @@
 > 🌐 **GitHub Profile:** [://github.com](https://github.com/RamNri)
 
 ---
-
-
 # Enterprise Selenium + API Automation Framework
 
-## Overview
+A Python-based, enterprise-style automation framework combining **Selenium UI automation**, **REST API testing**, parallel execution, Dockerized Selenium Grid, CI workflows, and an initial AWS container-execution and result-storage path.
 
-This project is a automation framework built using Python. It combines Selenium UI automation and REST API automation inside a scalable, enterprise-style architecture.
+The goal is to demonstrate more than individual test scripts: this project shows how an automation framework can be designed, structured, executed, diagnosed, and integrated with modern engineering infrastructure.
 
-The goal is not simply to write automated tests, but to demonstrate how an automation framework can be designed, structured, tested, executed, diagnosed, and evolved as a software system.
+> **Current status:** GitHub Actions workflows for tests, BrowserStack, Docker Grid, and Docker image publishing to Amazon ECR passed at the latest recorded checkpoint. An ECS Fargate one-off task has executed API tests and uploaded 13 raw Allure result files to private S3. Generating and publishing the browsable Allure HTML dashboard remains in progress.
 
-### Current capabilities
+## Highlights
 
-- Selenium UI Automation
-- REST API Automation
-- Enterprise API Client
-- Authentication Manager
-- Dependency Injection
-- Builder Pattern
-- Mapper Pattern
-- Response Object Pattern
-- Service Layer
-- Reusable Assertions
-- Enterprise Logging
-- Execution Context
-- Faker seed isolation
-- Parallel execution with pytest-xdist
+- Selenium WebDriver UI automation and REST API automation
+- Enterprise API client and authentication manager
+- Dependency injection and reusable assertions
+- Builder, mapper, factory, service-layer, and response-object patterns
+- Centralized configuration and execution-aware logging
+- Faker seed isolation and thread-local execution context
+- Parallel execution with `pytest-xdist`
 - Local and remote Selenium execution
-- Selenium Grid with Docker Compose
-- Failure diagnostics
-- Failure artifact management
-- Screenshot capture
-- HTML test reporting
-- Browser and Selenium session correlation
-- Sensitive data masking
+- Docker Compose-based Selenium Grid with Chrome node
+- Failure diagnostics, screenshots, and artifact management
+- `pytest-html` reporting with execution metadata
+- Sensitive-data masking in logs
 - CRUD API workflow testing
 - Dockerized test execution
+- GitHub Actions workflows for tests, BrowserStack, Docker Grid, and ECR image build/push
+- One-off Amazon ECS Fargate test execution
+- Raw Allure result upload to Amazon S3
+- CloudWatch logs for task execution and diagnostics
 
----
-
-# Architecture
+## Architecture
 
 ```text
-                              Tests
-                                |
-                 +--------------+--------------+
-                 |                             |
-          UI Automation                 API Automation
-                 |                             |
-           Page Objects                   Services
-                 |                             |
-           UI Actions                    API Clients
-                 |                             |
-                 |                    Authentication Manager
-                 |                             |
-                 |                        API Client
-                 |                             |
-                 +--------------+--------------+
-                                |
-                                v
-                       Test Infrastructure
-                                |
-             +------------------+------------------+
-             |                  |                  |
-       Execution Context    Logging          Diagnostics
-             |                  |                  |
-       Test Lifecycle       API Logging     Failure Artifacts
-             |                  |                  |
-       Parallel Execution    Masking        HTML Reporting
+                           Tests
+                            |
+                 +----------+----------+
+                 |                     |
+           UI Automation         API Automation
+                 |                     |
+            Page Objects             Services
+                 |                     |
+             UI Actions             API Clients
+                 |                     |
+          Selenium WebDriver    Authentication / HTTP
+                 |                     |
+                 +----------+----------+
+                            |
+                    Test Infrastructure
+                            |
+          +-----------------+-----------------+
+          |                 |                 |
+    Execution Context     Logging        Diagnostics
+          |                 |                 |
+    Test Lifecycle       API Logging    Failure Artifacts
+          |                 |                 |
+    Parallel Execution   Data Masking   HTML Reporting
 ```
 
 The framework separates test orchestration from application-facing layers and cross-cutting infrastructure.
 
 ### Architectural rules
 
-1. Tests orchestrate only.
+1. Tests orchestrate workflows and assertions.
 2. Services own business workflows.
 3. API clients own HTTP communication.
 4. Page objects own UI communication.
@@ -93,20 +80,22 @@ The framework separates test orchestration from application-facing layers and cr
 7. Configuration is centralized.
 8. Shared infrastructure belongs in `core` or dedicated framework infrastructure packages.
 
----
+## Design Principles
 
-# Design Principles
-
-The framework follows software engineering principles rather than being a collection of automation scripts.
-
-## SOLID
+### SOLID and framework principles
 
 - Single Responsibility Principle
-- Dependency Injection
-- Separation of Concerns
+- Dependency injection
+- Separation of concerns
 - Testability
+- Strongly typed models
+- Reusable assertions
+- Centralized logging
+- Execution-context isolation
+- Scalable folder structure
+- Failure diagnostics and observability
 
-## Design Patterns
+### Design patterns
 
 - Builder Pattern
 - Mapper Pattern
@@ -114,220 +103,97 @@ The framework follows software engineering principles rather than being a collec
 - Factory Pattern
 - Response Object Pattern
 
-## Framework Principles
-
-- Strongly typed models
-- Reusable assertions
-- Centralized logging
-- Execution-context isolation
-- Scalable folder structure
-- Enterprise layer separation
-- Failure diagnostics
-- Observability
-
----
-
-# Selenium WebDriver Architecture
+## Selenium WebDriver Architecture
 
 The Selenium layer supports multiple browsers and two execution modes: local and remote.
 
 ```text
                          DriverFactory
                               |
-                 +------------+------------+
-                 |                         |
-              LOCAL                     REMOTE
-                 |                         |
-        +--------+--------+                v
-        |        |        |          Selenium Hub
-      Chrome  Firefox    Edge              |
-                                           v
-                                      Chrome Node
-                                           |
-                                           v
+                  +-----------+-----------+
+                  |                       |
+                LOCAL                   REMOTE
+                  |                       |
+          +-------+-------+          Selenium Hub
+          |       |       |               |
+        Chrome Firefox  Edge          Chrome Node
+                                          |
                                       Real Browser
 ```
 
-`DriverFactory` is responsible for creating and closing WebDriver sessions. Browser selection, headless mode, execution mode, and Grid URL are resolved through centralized configuration.
+`DriverFactory` creates and closes WebDriver sessions. Browser selection, headless mode, execution mode, and Grid URL are resolved through centralized configuration. The same tests can execute locally or remotely without changing test code.
 
-The same tests can therefore execute against a local browser or a remote browser without changing test code.
+## Selenium Grid with Docker
 
----
-
-# Selenium Grid with Docker
-
-Selenium Grid is a first-class execution capability of this framework.
-
-The project uses Docker Compose to create a Selenium Grid consisting of a Hub and browser node, while a separate test-runner container executes the pytest suite.
-
-## Grid architecture
+Selenium Grid is a first-class execution capability. Docker Compose starts a Hub and browser node, while a separate test-runner container executes pytest.
 
 ```text
-                         Docker Compose
-                              |
-                 +------------+------------+
-                 |                         |
-                 v                         v
-          selenium-hub                 test-runner
-             :4444                         |
-                 ^                          |
-                 |                          |
-                 |                    pytest tests
-                 |
-                 v
-             chrome node
-                 |
-                 v
-           Chrome Browser
+                    Docker Compose
+                         |
+             +-----------+-----------+
+             |                       |
+        selenium-hub             test-runner
+           :4444                      |
+             ^                    pytest tests
+             |
+          chrome node
+             |
+        Chrome Browser
 ```
 
-The complete remote execution flow is:
-
-```text
-pytest
-  |
-  v
-DriverFactory
-  |
-  +---- LOCAL  ----> Local WebDriver
-  |
-  +---- REMOTE ----> Selenium Hub
-                         |
-                         v
-                    Chrome Node
-                         |
-                         v
-                    Chrome Browser
-```
-
-### Why this matters
-
-The tests do not need to know whether Selenium is running locally or inside Grid. The execution mode is controlled by configuration.
-
-Inside Docker, the test runner connects to the Hub using the Docker service name:
+Inside Docker, the test runner connects to the Hub using the service name:
 
 ```text
 http://selenium-hub:4444
 ```
 
-`localhost:4444` would refer to the test-runner container itself and is therefore not the correct address for container-to-container Grid communication.
+`localhost:4444` would refer to the test-runner container itself, not the Hub.
 
-### Docker Compose topology
+### Run the suite through Docker Compose
 
-```yaml
-services:
-  selenium-hub:
-    image: selenium/hub:4.41.0-20260222
-    ports:
-      - "4444:4444"
-
-  chrome:
-    image: selenium/node-chrome:4.41.0-20260222
-    shm_size: 2gb
-    depends_on:
-      selenium-hub:
-        condition: service_healthy
-    environment:
-      - SE_EVENT_BUS_HOST=selenium-hub
-
-  test-runner:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      chrome:
-        condition: service_started
-    command: pytest --execution-mode remote
+```powershell
+docker compose up --build --abort-on-container-exit test-runner
 ```
 
-### Grid readiness
+Inspect services and logs:
 
-The Hub has a health check and the Chrome node depends on a healthy Hub. This reduces startup-order failures during containerized execution.
-
-### Remote execution result
-
-The complete Docker + Selenium Grid execution has been validated with the full framework suite:
-
-```text
-134 passed, 1 deselected
+```powershell
+docker compose ps
+docker compose logs chrome
 ```
 
-This confirms that the framework can execute its UI/API/unit coverage through the Dockerized remote Selenium path.
+Stop the Grid:
 
----
+```powershell
+docker compose down
+```
 
-# Execution Context
+The Hub health check and Chrome-node dependency help reduce startup-order failures.
 
-The framework uses a thread-local execution context to maintain execution information independently for concurrent test workers/threads.
+**Previously validated result:** the Docker + remote Selenium Grid suite completed with `134 passed, 1 deselected` at the recorded checkpoint. Results can vary with subsequent code or environment changes.
 
-The context contains:
+## Execution Context and Parallel Execution
+
+The framework uses a thread-local execution context to keep metadata isolated across concurrent workers and threads. Context can include:
 
 - Execution ID
 - Worker ID
 - Thread ID
 - Test name
 - Faker seed
-- Browser
-- Selenium Session ID
-- Start time
-- Duration
-- Driver
+- Browser and Selenium session ID
+- Start time and duration
+- Driver reference
 
-A key distinction is maintained between worker identity, thread identity, and individual test execution identity.
+A worker or thread may execute multiple tests, but each test receives a new execution ID and test-specific state. This helps correlate logs, reports, browser sessions, and failure artifacts.
 
-```text
-Worker
-  |
-  +-- Thread
-       |
-       +-- Test A --> Execution ID A
-       |
-       +-- Test B --> Execution ID B
-       |
-       +-- Test C --> Execution ID C
-```
-
-A worker or thread may execute multiple tests, but each test receives a new execution ID and test-specific execution state.
-
-This allows logs, reports, browser sessions, and failure artifacts to be correlated with an individual test execution.
-
----
-
-# Parallel Execution
-
-Parallel execution is implemented using `pytest-xdist`.
+Run in parallel:
 
 ```powershell
 pytest -v -n 2
 ```
 
-Conceptually:
-
-```text
-                         Pytest
-                           |
-              +------------+------------+
-              |                         |
-             gw0                       gw1
-              |                         |
-           Worker                    Worker
-              |                         |
-        +-----+-----+             +-----+-----+
-        |     |     |             |     |     |
-       T1    T2    T3            T4    T5    T6
-        |     |     |             |     |     |
-       E1    E2    E3            E4    E5    E6
-```
-
-Where:
-
-- `gw0`, `gw1` represent pytest workers.
-- Test execution IDs identify individual test executions.
-- Worker/thread reuse does not cause execution metadata to leak between tests.
-
----
-
-# API Automation Architecture
+## API Automation Architecture
 
 The API layer follows a service/client/mapper/model architecture.
 
@@ -349,37 +215,28 @@ BookingMapper
 BookingRequest   BookingResponse
   |                   |
   v                   v
-Booking           Booking
+Booking              Booking
 ```
 
 ### Responsibilities
 
-- **Tests**: orchestration and assertions.
-- **Services**: business workflows.
-- **Clients**: HTTP communication.
-- **Mappers**: serialization/deserialization.
-- **Models**: strongly typed request/domain data.
-- **Response objects**: structured response handling.
-- **Authentication Manager**: authentication lifecycle.
+- **Tests:** orchestration and assertions
+- **Services:** business workflows
+- **Clients:** HTTP communication
+- **Mappers:** serialization and deserialization
+- **Models:** strongly typed request/domain data
+- **Response objects:** structured response handling
+- **Authentication Manager:** authentication lifecycle
 
-Dependency injection is used to keep these layers independently testable.
+Dependency injection keeps these layers independently testable.
 
----
+## Configuration
 
-# Configuration
+Configuration is centralized and separates runtime settings from environment endpoints.
 
-Configuration is centralized and separated into environment and runtime concerns.
+Runtime configuration includes browser, headless mode, execution mode, and Selenium Grid URL. Environment configuration includes application and API endpoints.
 
-Runtime configuration includes:
-
-- Browser
-- Headless mode
-- Execution mode
-- Selenium Grid URL
-
-Environment configuration includes application and API endpoints.
-
-The framework supports command-line configuration such as:
+Examples of supported command-line configuration:
 
 ```powershell
 pytest --browser chrome
@@ -389,75 +246,15 @@ pytest --execution-mode local
 pytest --execution-mode remote
 ```
 
-The same test suite can therefore be executed with different runtime configurations without modifying test code.
+## Logging and Observability
 
----
+Centralized logging can include timestamp, log level, logger name, execution ID, worker ID, thread ID, test name, Faker seed, browser/session information, and message. This makes framework activity traceable to a specific test execution.
 
-# Logging
+API request/response logging can capture HTTP method, endpoint, request body, response status, reason, response body, response time, and execution context.
 
-The framework provides centralized execution-aware logging using Python's logging infrastructure.
+## Sensitive Data Masking
 
-Logs can include:
-
-- Timestamp
-- Log level
-- Logger name
-- Execution ID
-- Worker ID
-- Thread ID
-- Test name
-- Faker seed
-- Browser/session information
-- Message
-
-Example:
-
-```text
-2026-08-27 11:44:44 | INFO | core.driver.driver_factory |
-[exec=07e9b33c... | worker=gw0 | thread=34064 |
-test=tests/test_failure_artifacts.py::test_failure_artifact |
-seed=904989091] |
-Browser created : chrome
-```
-
-This makes framework activity traceable to a specific test execution.
-
----
-
-# API Logging
-
-API requests and responses are logged with execution context.
-
-```text
-HTTP REQUEST
-POST /booking
-      |
-      v
-HTTP RESPONSE
-200 OK
-Elapsed : 0.32 sec
-```
-
-API logging includes:
-
-- HTTP method
-- Endpoint
-- Request body
-- Response status
-- Response reason
-- Response body
-- Response time
-- Execution context
-
-Sensitive information is masked before being written to logs.
-
----
-
-# Sensitive Data Masking
-
-The framework prevents sensitive information from being exposed in logs.
-
-Sensitive fields include values such as:
+The framework masks sensitive information before writing it to logs. Examples include:
 
 ```text
 password
@@ -479,71 +276,42 @@ Example:
 }
 ```
 
-Masking is applied to request headers and structured request bodies.
+Masking is applied to request headers and structured request bodies. Never commit real credentials, access keys, tokens, or environment-specific secrets.
 
----
+## Failure Diagnostics and Artifact Management
 
-# Failure Diagnostics
-
-Failure diagnostics are implemented as a dedicated framework capability.
+Failure processing is separated from pytest lifecycle hooks so components can be tested independently.
 
 ```text
 Test Failure
      |
-     v
 pytest lifecycle hook
      |
-     v
 Failure Sanitizer
      |
-     v
 Failure Artifact Manager
      |
-     v
 Screenshot Capture
      |
-     v
 pytest-html Report
 ```
 
-For failed UI tests, the framework captures a browser screenshot and attaches it to the HTML report.
+For failed UI tests, the framework captures a browser screenshot and attaches it to the HTML report. Failure artifacts are isolated by worker and execution ID to avoid overwriting artifacts from parallel executions.
 
-Failure processing is separated from the pytest lifecycle so individual components remain independently testable.
-
----
-
-# Failure Artifact Management
-
-Failure artifacts are isolated by worker and execution ID.
-
-```text
-artifacts/
-└── screenshots/
-    └── gw0/
-        └── <execution_id>/
-            └── test_failure_artifact_<timestamp>.png
-```
-
-This prevents artifacts from different parallel executions from overwriting one another.
-
-The framework currently captures:
+The framework can capture:
 
 - Browser screenshots
 - Failure information
 - Execution metadata
 - HTML report attachments
 
----
+## HTML Reporting
 
-# HTML Reporting
-
-The framework integrates with `pytest-html`.
-
-The report includes execution metadata such as:
+The framework integrates with `pytest-html`. Report metadata can include:
 
 | Metadata | Purpose |
 |---|---|
-| Execution ID | Identifies the individual test execution |
+| Execution ID | Identifies an individual test execution |
 | Worker | Identifies the pytest worker |
 | Thread | Identifies the execution thread |
 | Browser | Identifies the browser used |
@@ -551,58 +319,25 @@ The report includes execution metadata such as:
 | Test Result | Pass/fail status |
 | Duration | Test execution time |
 
-For failed UI tests, the corresponding screenshot is attached to the HTML report.
+For failed UI tests, the corresponding screenshot can be attached to the report.
 
-The diagnostic path is therefore:
+## Intentional Failure Validation
 
-```text
-Failed Test
-    |
-    v
-Execution ID
-    |
-    v
-Worker / Thread
-    |
-    v
-Browser Session
-    |
-    v
-Screenshot
-    |
-    v
-Logs
-```
-
----
-
-# Intentional Failure Validation
-
-The framework contains a dedicated test for validating the failure-artifact pipeline.
-
-It is marked with:
+The framework includes a dedicated test for validating the failure-artifact pipeline, marked with:
 
 ```python
 @pytest.mark.artifact_validation
 ```
 
-Normal execution excludes this intentional failure through `pytest.ini`.
-
-```powershell
-pytest
-```
-
-The validation test can be executed explicitly:
+Normal execution excludes this intentional failure through `pytest.ini`. Run it explicitly:
 
 ```powershell
 pytest -m artifact_validation
 ```
 
-It is intentionally expected to fail so the screenshot capture and HTML-report attachment mechanisms can be validated.
+It is intentionally expected to fail so screenshot capture and HTML-report attachment can be validated.
 
----
-
-# Docker
+## Docker
 
 The framework can be packaged into a Docker image using the project `Dockerfile`.
 
@@ -615,14 +350,183 @@ COPY . .
 CMD ["pytest"]
 ```
 
-Docker provides a reproducible environment for running the framework and forms the foundation for later CI/CD and cloud execution.
+Docker provides a reproducible execution environment and is used by the local Selenium Grid workflow and CI image build.
 
----
+## AWS Container Execution and S3 Results
 
-# Project Structure
+The project has an initial AWS path for running API tests as a one-off ECS Fargate task.
 
 ```text
-SELENIUM_FRAMEWORK/
+GitHub Actions
+      |
+      v
+Docker image build
+      |
+      v
+Amazon ECR
+      |
+      v
+One-off ECS Fargate task
+      |
+      v
+pytest API suite
+      |
+      v
+Allure raw result files
+      |
+      v
+Private Amazon S3 bucket
+      |
+      v
+CloudWatch task logs
+```
+
+### Implemented and exercised
+
+- Docker image build and push to Amazon ECR from GitHub Actions
+- ECS Fargate task definition for a one-off run
+- Task-role-based AWS access rather than credentials embedded in test code
+- Raw Allure result upload to S3 under a unique run-specific prefix
+- CloudWatch logs for execution and upload diagnostics
+
+A successful ECS task log confirmed **13 Allure result files uploaded** to a run-specific S3 prefix.
+
+### Allure HTML status
+
+S3 currently contains raw Allure results, not the generated HTML dashboard. The next step is to generate the HTML report and publish it with controlled access. Keep the report bucket private unless a reviewed hosting design explicitly requires a different access model.
+
+### Cost and security notes
+
+- ECS is used as a one-off task, not a continuously running service.
+- AWS resources may incur charges; review running resources and billing after experiments.
+- Do not put AWS access keys in source code or README examples.
+- Do not make the report bucket public simply to view reports.
+
+## Technology Stack
+
+| Component | Technology |
+|---|---|
+| Language | Python 3.12 |
+| Test Runner | pytest |
+| UI Automation | Selenium WebDriver |
+| API Automation | Requests |
+| Parallel Execution | pytest-xdist |
+| Containerization | Docker |
+| Grid | Selenium Grid |
+| Orchestration | Docker Compose |
+| Reporting | pytest-html; Allure raw-result upload path |
+| Logging | Python logging |
+| Test Data | Faker |
+| CI/CD | GitHub Actions |
+| Container Registry | Amazon ECR |
+| Cloud Execution | Amazon ECS Fargate |
+| Artifact Storage | Amazon S3 |
+| Cloud Logs | Amazon CloudWatch |
+| Version Control | Git / GitHub |
+
+## Testing Strategy
+
+The framework itself is tested using unit tests in addition to API, integration, and framework-level validation.
+
+Coverage areas include:
+
+- Execution context
+- Configuration and runtime configuration
+- Driver behavior
+- Logging utilities
+- Failure sanitization
+- Failure artifact management
+- Execution lifecycle
+- Sensitive-data masking
+- Parallel execution
+- Dockerized remote execution
+
+## Running the Tests
+
+### Normal local execution
+
+```powershell
+pytest -v
+```
+
+### Run in parallel
+
+```powershell
+pytest -v -n 2
+```
+
+### Run unit tests
+
+```powershell
+pytest .\tests\unit -v
+```
+
+### Run headless
+
+```powershell
+pytest --headless
+```
+
+### Run remote Selenium Grid execution
+
+```powershell
+pytest --execution-mode remote
+```
+
+When running inside the Docker Compose test-runner, the Grid URL is:
+
+```text
+http://selenium-hub:4444
+```
+
+### Start Selenium Grid and run the suite
+
+```powershell
+docker compose up --build --abort-on-container-exit test-runner
+```
+
+### Stop the Grid
+
+```powershell
+docker compose down
+```
+
+### Inspect Grid services
+
+```powershell
+docker compose ps
+```
+
+### Inspect Chrome node logs
+
+```powershell
+docker compose logs chrome
+```
+
+### Run failure-artifact validation
+
+```powershell
+pytest -m artifact_validation -v -n 2 --html=artifacts/report.html --self-contained-html
+```
+
+## Generate an Allure HTML Report from S3 Results
+
+The ECS task currently uploads raw result files. To view them as an Allure dashboard, download a specific run's result folder, then generate the report locally.
+
+```powershell
+aws s3 sync "s3://YOUR-PRIVATE-BUCKET/allure-results/YOUR-RUN-ID/" ".\artifacts\allure-results"
+allure generate .\artifacts\allure-results --clean -o .\artifacts\allure-report
+allure open .\artifacts\allure-report
+```
+
+The AWS CLI must be authenticated with permission to read the relevant S3 objects, and the Allure CLI must be installed. Do not share credentials or make the bucket public to work around an authentication error.
+
+## Project Structure
+
+The main directories follow this general layout; some modules may evolve as the framework grows.
+
+```text
+enterprise-test-automation-framework/
 ├── config/
 ├── core/
 │   ├── driver/
@@ -655,7 +559,7 @@ SELENIUM_FRAMEWORK/
 │   └── integration/
 ├── reports/
 ├── logs/
-├── artifacts/
+├── artifacts/             # generated; do not commit
 ├── conftest.py
 ├── pytest.ini
 ├── requirements.txt
@@ -664,142 +568,22 @@ SELENIUM_FRAMEWORK/
 └── .dockerignore
 ```
 
-Runtime-generated artifacts are excluded from source control.
+Runtime-generated logs, reports, screenshots, and test artifacts are excluded from source control.
 
----
+## GitHub Actions / CI Status
 
-# Technology Stack
+At the latest recorded checkpoint, these GitHub Actions job categories passed:
 
-| Component | Technology |
-|---|---|
-| Language | Python 3.12 |
-| Test Runner | Pytest |
-| UI Automation | Selenium WebDriver |
-| API Automation | Requests |
-| Parallel Execution | pytest-xdist |
-| Containerization | Docker |
-| Grid | Selenium Grid |
-| Orchestration | Docker Compose |
-| Reporting | pytest-html |
-| Logging | Python Logging |
-| Test Data | Faker |
-| Version Control | Git |
+- Test suite
+- BrowserStack execution
+- Docker/Selenium Grid execution
+- Docker image build and push to Amazon ECR
 
----
+Check the repository's **Actions** tab for current status. The ECS Fargate task and S3 upload were also manually exercised. Fully automated orchestration from a GitHub event through ECS execution and browsable Allure HTML publication remains future work.
 
-# Testing Strategy
+## Roadmap
 
-The framework itself is tested using unit tests in addition to integration and framework-level validation.
-
-Testing covers areas including:
-
-- Execution Context
-- Configuration
-- Runtime configuration
-- Driver behavior
-- Logging utilities
-- Failure sanitization
-- Failure artifact management
-- Execution lifecycle
-- Sensitive-data masking
-- Framework configuration
-- Parallel execution
-- Dockerized remote execution
-
-The framework also performs real parallel execution validation using pytest-xdist.
-
----
-
-# Running the Tests
-
-## Normal local execution
-
-```powershell
-pytest -v
-```
-
-## Run in parallel
-
-```powershell
-pytest -v -n 2
-```
-
-## Run unit tests
-
-```powershell
-pytest .\tests\unit -v
-```
-
-## Run headless
-
-```powershell
-pytest --headless
-```
-
-## Run remote Selenium Grid execution
-
-```powershell
-pytest --execution-mode remote
-```
-
-When running from inside the Docker Compose test-runner, the framework uses:
-
-```text
-http://selenium-hub:4444
-```
-
-## Start Selenium Grid and run the complete suite
-
-```powershell
-docker compose up --build --abort-on-container-exit test-runner
-```
-
-## Stop the Grid
-
-```powershell
-docker compose down
-```
-
-## Inspect Grid services
-
-```powershell
-docker compose ps
-```
-
-## Inspect Chrome node logs
-
-```powershell
-docker compose logs chrome
-```
-
-## Run failure-artifact validation
-
-```powershell
-pytest -m artifact_validation -v -n 2 --html=artifacts/report.html --self-contained-html
-```
-
----
-
-# Git and Generated Artifacts
-
-Runtime artifacts are intentionally excluded from source control.
-
-```text
-artifacts/
-├── logs/
-├── screenshots/
-└── report.html
-```
-
-Source code, framework components, tests, Docker configuration, and project configuration remain version controlled.
-
----
-
-# Roadmap
-
-The framework is being evolved deliberately from framework fundamentals toward enterprise execution, reporting, CI/CD, cloud, integrations, and AI-assisted engineering.
-
-## Phase 1 — Enterprise Framework Core
+### Phase 1 — Enterprise Framework Core
 
 - [x] UI Automation
 - [x] API Automation
@@ -813,91 +597,54 @@ The framework is being evolved deliberately from framework fundamentals toward e
 - [x] Enterprise Logging
 - [x] Retry Policy
 - [x] Retry Policy Unit Tests
+- [x] Pytest Markers
 - [ ] Custom Exceptions
 - [ ] Faker expansion
 - [ ] Advanced Fixtures
-- [x] Pytest Markers
 
-## Phase 2 — Enterprise Execution
+### Phase 2 — Enterprise Execution
 
 - [x] Parallel Execution with pytest-xdist
 - [x] Docker
 - [x] Docker Compose
 - [x] Selenium Grid
-- [ ] BrowserStack
+- [x] BrowserStack workflow exercised
 
-## Phase 3 — Enterprise Reporting
+### Phase 3 — Enterprise Reporting
 
 - [x] Pytest HTML baseline
-- [ ] Allure
-- [ ] Screenshots expansion
-- [ ] Video capture
-- [ ] API attachments
-- [ ] Centralized logs in reports
-- [ ] Environment metadata
-- [ ] Categories/history
+- [x] Allure raw-result upload path exercised
+- [ ] Generate Allure HTML automatically
+- [ ] Publish browsable report with controlled access
+- [ ] Expand screenshots and API attachments
+- [ ] Centralize logs in reports
+- [ ] Add environment metadata, categories, and history
 
-## Phase 4 — Cloud & DevOps
+### Phase 4 — Cloud and DevOps
 
-- [ ] GitHub Actions
-- [ ] Docker image build in CI
-- [ ] AWS ECR
-- [ ] AWS ECS / EC2 execution
-- [ ] S3 report publishing
-- [ ] CloudFront report hosting
-- [ ] IAM
-- [ ] Secrets Manager
-- [ ] Parameter Store
+- [x] GitHub Actions workflows
+- [x] Docker image build in CI
+- [x] Amazon ECR
+- [x] ECS Fargate one-off execution exercised
+- [x] S3 raw-result upload
+- [x] CloudWatch logs
+- [ ] Automate end-to-end CI-to-ECS execution
+- [ ] Publish generated Allure HTML
+- [ ] Evaluate CloudFront or another controlled report-delivery option
+- [ ] Integrate Secrets Manager or Parameter Store
 - [ ] Scheduled regression
-- [ ] CloudWatch
 - [ ] SNS notifications
 
-Target architecture:
+### Phase 5 — Integrations
 
-```text
-GitHub Push
-    |
-    v
-GitHub Actions
-    |
-    v
-Docker Image
-    |
-    v
-AWS ECR
-    |
-    v
-AWS ECS / EC2
-    |
-    v
-Selenium + API Tests
-    |
-    v
-Allure Results
-    |
-    v
-S3
-    |
-    v
-CloudFront
-    |
-    v
-Slack / Notification
-```
-
-## Phase 5 — Integrations
-
-- [ ] BrowserStack integration
+- [ ] BrowserStack expansion
 - [ ] Slack notifications
 - [ ] Email notifications
 - [ ] Jira integration
 - [ ] TestRail integration where applicable
 - [ ] REST-based enterprise integrations
 
-
-# Enterprise Evolution
-
-The framework is intentionally being built in layers.
+## Enterprise Evolution
 
 ```text
 Automation Scripts
@@ -924,4 +671,12 @@ Observability + Integrations
 AI-Assisted Quality Engineering
 ```
 
-This progression demonstrates not only test automation skills, but also framework architecture, distributed execution, containerization, DevOps awareness, observability, and engineering leadership.
+This progression demonstrates automation architecture, distributed execution, containerization, CI/CD, cloud integration, observability, and engineering leadership.
+
+## Repository
+
+**GitHub:** [RamNri/enterprise-test-automation-framework](https://github.com/RamNri/enterprise-test-automation-framework)
+
+---
+
+*This README distinguishes capabilities that have been exercised from work still in progress. Check the latest commits and GitHub Actions runs for the current state.*
