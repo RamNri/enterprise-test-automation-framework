@@ -16,8 +16,6 @@ A Python-based, enterprise-style automation framework combining **Selenium UI au
 
 The goal is to demonstrate more than individual test scripts: this project shows how an automation framework can be designed, structured, executed, diagnosed, and integrated with modern engineering infrastructure.
 
-> **Current status:** GitHub Actions workflows for tests, BrowserStack, Docker Grid, and Docker image publishing to Amazon ECR passed at the latest recorded checkpoint. An ECS Fargate one-off task has executed API tests and uploaded 13 raw Allure result files to private S3. Generating and publishing the browsable Allure HTML dashboard remains in progress.
-
 ## Highlights
 
 - Selenium WebDriver UI automation and REST API automation
@@ -169,8 +167,6 @@ docker compose down
 ```
 
 The Hub health check and Chrome-node dependency help reduce startup-order failures.
-
-**Previously validated result:** the Docker + remote Selenium Grid suite completed with `134 passed, 1 deselected` at the recorded checkpoint. Results can vary with subsequent code or environment changes.
 
 ## Execution Context and Parallel Execution
 
@@ -395,52 +391,6 @@ A successful ECS task log confirmed **13 Allure result files uploaded** to a run
 
 S3 currently contains raw Allure results, not the generated HTML dashboard. The next step is to generate the HTML report and publish it with controlled access. Keep the report bucket private unless a reviewed hosting design explicitly requires a different access model.
 
-### Cost and security notes
-
-- ECS is used as a one-off task, not a continuously running service.
-- AWS resources may incur charges; review running resources and billing after experiments.
-- Do not put AWS access keys in source code or README examples.
-- Do not make the report bucket public simply to view reports.
-
-## Technology Stack
-
-| Component | Technology |
-|---|---|
-| Language | Python 3.12 |
-| Test Runner | pytest |
-| UI Automation | Selenium WebDriver |
-| API Automation | Requests |
-| Parallel Execution | pytest-xdist |
-| Containerization | Docker |
-| Grid | Selenium Grid |
-| Orchestration | Docker Compose |
-| Reporting | pytest-html; Allure raw-result upload path |
-| Logging | Python logging |
-| Test Data | Faker |
-| CI/CD | GitHub Actions |
-| Container Registry | Amazon ECR |
-| Cloud Execution | Amazon ECS Fargate |
-| Artifact Storage | Amazon S3 |
-| Cloud Logs | Amazon CloudWatch |
-| Version Control | Git / GitHub |
-
-## Testing Strategy
-
-The framework itself is tested using unit tests in addition to API, integration, and framework-level validation.
-
-Coverage areas include:
-
-- Execution context
-- Configuration and runtime configuration
-- Driver behavior
-- Logging utilities
-- Failure sanitization
-- Failure artifact management
-- Execution lifecycle
-- Sensitive-data masking
-- Parallel execution
-- Dockerized remote execution
-
 ## Running the Tests
 
 ### Normal local execution
@@ -508,19 +458,6 @@ docker compose logs chrome
 ```powershell
 pytest -m artifact_validation -v -n 2 --html=artifacts/report.html --self-contained-html
 ```
-
-## Generate an Allure HTML Report from S3 Results
-
-The ECS task currently uploads raw result files. To view them as an Allure dashboard, download a specific run's result folder, then generate the report locally.
-
-```powershell
-aws s3 sync "s3://YOUR-PRIVATE-BUCKET/allure-results/YOUR-RUN-ID/" ".\artifacts\allure-results"
-allure generate .\artifacts\allure-results --clean -o .\artifacts\allure-report
-allure open .\artifacts\allure-report
-```
-
-The AWS CLI must be authenticated with permission to read the relevant S3 objects, and the Allure CLI must be installed. Do not share credentials or make the bucket public to work around an authentication error.
-
 ## Project Structure
 
 The main directories follow this general layout; some modules may evolve as the framework grows.
@@ -559,7 +496,7 @@ enterprise-test-automation-framework/
 │   └── integration/
 ├── reports/
 ├── logs/
-├── artifacts/             # generated; do not commit
+├── artifacts/             
 ├── conftest.py
 ├── pytest.ini
 ├── requirements.txt
@@ -580,103 +517,3 @@ At the latest recorded checkpoint, these GitHub Actions job categories passed:
 - Docker image build and push to Amazon ECR
 
 Check the repository's **Actions** tab for current status. The ECS Fargate task and S3 upload were also manually exercised. Fully automated orchestration from a GitHub event through ECS execution and browsable Allure HTML publication remains future work.
-
-## Roadmap
-
-### Phase 1 — Enterprise Framework Core
-
-- [x] UI Automation
-- [x] API Automation
-- [x] Builders
-- [x] Mappers
-- [x] Services
-- [x] Dependency Injection
-- [x] Authentication
-- [x] CRUD
-- [x] Assertions
-- [x] Enterprise Logging
-- [x] Retry Policy
-- [x] Retry Policy Unit Tests
-- [x] Pytest Markers
-- [ ] Custom Exceptions
-- [ ] Faker expansion
-- [ ] Advanced Fixtures
-
-### Phase 2 — Enterprise Execution
-
-- [x] Parallel Execution with pytest-xdist
-- [x] Docker
-- [x] Docker Compose
-- [x] Selenium Grid
-- [x] BrowserStack workflow exercised
-
-### Phase 3 — Enterprise Reporting
-
-- [x] Pytest HTML baseline
-- [x] Allure raw-result upload path exercised
-- [ ] Generate Allure HTML automatically
-- [ ] Publish browsable report with controlled access
-- [ ] Expand screenshots and API attachments
-- [ ] Centralize logs in reports
-- [ ] Add environment metadata, categories, and history
-
-### Phase 4 — Cloud and DevOps
-
-- [x] GitHub Actions workflows
-- [x] Docker image build in CI
-- [x] Amazon ECR
-- [x] ECS Fargate one-off execution exercised
-- [x] S3 raw-result upload
-- [x] CloudWatch logs
-- [ ] Automate end-to-end CI-to-ECS execution
-- [ ] Publish generated Allure HTML
-- [ ] Evaluate CloudFront or another controlled report-delivery option
-- [ ] Integrate Secrets Manager or Parameter Store
-- [ ] Scheduled regression
-- [ ] SNS notifications
-
-### Phase 5 — Integrations
-
-- [ ] BrowserStack expansion
-- [ ] Slack notifications
-- [ ] Email notifications
-- [ ] Jira integration
-- [ ] TestRail integration where applicable
-- [ ] REST-based enterprise integrations
-
-## Enterprise Evolution
-
-```text
-Automation Scripts
-       |
-       v
-Reusable Framework
-       |
-       v
-Enterprise Execution
-       |
-       v
-Docker + Selenium Grid
-       |
-       v
-Cloud Execution
-       |
-       v
-CI/CD
-       |
-       v
-Observability + Integrations
-       |
-       v
-AI-Assisted Quality Engineering
-```
-
-This progression demonstrates automation architecture, distributed execution, containerization, CI/CD, cloud integration, observability, and engineering leadership.
-
-## Repository
-
-**GitHub:** [RamNri/enterprise-test-automation-framework](https://github.com/RamNri/enterprise-test-automation-framework)
-
----
-
-*This README distinguishes capabilities that have been exercised from work still in progress. Check the latest commits and GitHub Actions runs for the current state.*
